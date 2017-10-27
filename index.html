@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Send an email a reminder to a list of people that have been pwned</title>
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
+	<!-- Google Fonts -->
+	<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
+
+	<!-- CSS Reset -->
+	<link rel="stylesheet" href="//cdn.rawgit.com/necolas/normalize.css/master/normalize.css">
+
+	<!-- Milligram CSS minified -->
+	<link rel="stylesheet" href="//cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css">
+
+	<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.17.0/jquery.validate.min.js"></script>
+	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.2/knockout-min.js"></script>
+	<style>
+		.button, button, input[type='button'], input[type='reset'], input[type='submit'] {
+			background-color: #00aef0;
+		}
+
+		.button, button, input[type='button'], input[type='reset'], input[type='submit'], input[type='email']:focus, input[type='number']:focus, input[type='password']:focus, input[type='search']:focus, input[type='tel']:focus, input[type='text']:focus, input[type='url']:focus, textarea:focus, select:focus {
+			border-color: #00aef0;
+		}
+
+		input[type='email'], input[type='number'], input[type='password'], input[type='search'], input[type='tel'], input[type='text'], input[type='url'], textarea, select {
+			background-color: #ffffff;
+		}
+
+		html {
+			height: 100%;
+			background: linear-gradient(141deg, #f0f0f0 0%, #f8f8f8 51%, #ffffff 75%)
+		}
+		.wrapper {
+			padding: 2rem 0;
+		}
+		#progressPercentage {
+			position: absolute;
+		    margin-top: 0.5rem;
+    		margin-left: 1rem;
+		}
+		.emailAddressesTextarea {
+			min-height: 12rem;
+		}
+		.hide {
+			display: none;
+		}
+		#results {
+			padding: 2rem;
+		}
+		#results a {
+			color: #fff;
+			text-decoration: underline;
+		}
+		.upsidedown {
+			color: #ffffff;
+			background: #333333;
+		}
+	</style>
+</head>
+<body>
+
+<main class="wrapper">
+	<section class="container">
+		<h1>Multi-email HIBP checker</h1>
+		<p>Use this form to create an email to all the addresses that have been pwned - each address will be individually checked, so it might take a little while...</p>
+		<form id="emailAddressCheck">
+			<div>
+				<label for="emailAddresses">Enter email addresses</label>
+				<textarea id="emailAddresses" class="emailAddressesTextarea">
+hello@example.com;ggg@ww.cc
+				</textarea>
+				<blockquote>
+					Did you know: <em>You can enter email addresses with comma, semi-colon, space or newline seperators, sweet!</em>
+				</blockquote>
+			</div>
+			<button>Check</button>
+		</form>
+	</section>
+
+</main>
+<main class="wrapper upsidedown hide">
+	<section id="results" class="container">
+	</section>
+</main>
+	<script>
+		var getAddresses = function(){
+			var addresses = $('#emailAddresses').val();
+			addresses = addresses.split(/[\n|;|,| ]/);
+			addresses = addresses.filter(function(add){
+				return $.trim(add) !== "";
+			});
+			return addresses;
+		};
+
+		var createEmail = function(addresses) {
+			//<a href="mailto:astark1@unl.edu?body=The message's first paragraph.%0A%0aSecond paragraph.%0A%0AThird Paragraph.">
+			var tmpl = [
+				"Hi,",
+				"",
+				"Your email address has been identified as having been pwned, please check that you've changed your passwords for each of the compromised accounts by checking this link:",
+				"",
+				"https://haveibeenpwned.com/",
+				"",
+				"Regards;",
+				""
+			].join("\n"),
+			subject = "You have been pwned";
+
+			return {
+				subject: subject,
+				emailBody: tmpl,
+				mailtoLink: "mailto:?body="+encodeURIComponent(tmpl)+
+					"&subject="+encodeURIComponent(subject)+
+					"&bcc="+addresses.join(";")
+			};
+		};
+
+		$('#emailAddressCheck').submit(function(e){
+
+			var url = "https://haveibeenpwned.com/api/v2/breachedaccount/",
+				addresses = getAddresses(),
+				queue = [],
+				pwned = [],
+				notpwned = [],
+				limit = 1650,
+				isInprogress = false,
+				xhr,
+				processQueue = function(){
+					progress(queue.length, addresses.length);
+					if(queue.length > 0) {
+						doRequest(queue.shift());
+					} else {
+						finished();
+					}
+				},
+				doRequest = function(email){
+					if(isInprogress) {
+						queue.push(email);
+					} else {
+						var requestStarted = (new Date()).getTime();
+						xhr = $.ajax(url + email, {
+							success: function(data){
+								pwned.push(email);
+								setTimeout(processQueue, limit);
+							},
+							error: function(err) {
+								if(err && err.status === 404) {
+									notpwned.push(email);
+								}
+								setTimeout(processQueue, limit);
+							}
+						})
+					}
+				},
+				progress = function(current, total){
+					var value = Math.round(100 - (current/total)*100);
+					console.log('progress', value + "%");
+					$( "#progressBar" ).progressbar({value: value});
+					$("#progressPercentage").html(value + "%");
+				},
+				finished = function(){
+					console.log('pwned', pwned);
+					console.log('not pwned', notpwned);
+
+					var email = createEmail(pwned);
+
+					$('#results').html([
+						"<h2>Results</h2>",
+						"<p>The following addresses have been pwned</p>",
+						"<ul><li>" + pwned.join("</li><li>") + "</li></ul>",
+
+						(notpwned.length > 0 ? "<p>The following addresses have not been pwned</p>" : ""),
+						(notpwned.length > 0 ? "<ul><li>" + notpwned.join("</li><li>") + "</li></ul>" : ""),
+
+						"",
+
+						"<h3>What should I do now?</h3>",
+						"<p>Email the users</p>",
+						"<a href=\""+ email.mailtoLink + "\">Mailto link - all recipients are BCC</a>",
+						"<input type='text' value=\""+pwned.join(";")+"\">",
+						""
+					].join("\n"));
+
+					$('.ui-dialog').remove();
+					$('.upsidedown').removeClass("hide");
+				};
+
+			e.preventDefault();
+
+			queue = queue.concat(addresses);
+
+			$('.ui-dialog').remove();
+			$('.upsidedown').addClass('hide');
+
+			$(['<div>',
+					'<div id="progressPercentage"></div>',
+					'<div id="progressBar"></div>',
+				'</div>'].join("\n")
+			).dialog({
+				title: "Checking "+ queue.length +" email addresses",
+				modal: true,
+				buttons: {
+					Cancel: function() {
+						queue = [];
+						xhr.abort();
+						$( this ).dialog( "close" );
+					}
+				}
+			})
+
+			processQueue();
+		});
+	</script>
+</body>
+</html>
