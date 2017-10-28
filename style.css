@@ -1,0 +1,92 @@
+.button,
+button,
+input[type='button'],
+input[type='reset'],
+input[type='submit'] {
+    background-color: #00aef0;
+}
+
+pre,
+.button,
+button,
+input[type='button'],
+input[type='reset'],
+input[type='submit'],
+input[type='email']:focus,
+input[type='number']:focus,
+input[type='password']:focus,
+input[type='search']:focus,
+input[type='tel']:focus,
+input[type='text']:focus,
+input[type='url']:focus,
+textarea:focus,
+select:focus {
+    border-color: #00aef0;
+}
+
+input[type='email'],
+input[type='number'],
+input[type='password'],
+input[type='search'],
+input[type='tel'],
+input[type='text'],
+input[type='url'],
+textarea,
+select {
+    background-color: #ffffff;
+}
+
+html {
+    height: 100%;
+    background: linear-gradient(141deg, #f0f0f0 0%, #f8f8f8 51%, #ffffff 75%) font-family:;
+}
+
+.wrapper {
+    padding: 2rem 0;
+}
+
+#progressPercentage {
+    position: absolute;
+    margin-top: 0.5rem;
+    margin-left: 1rem;
+}
+
+.large-textarea {
+    min-height: 12rem;
+}
+
+.extra-large-textarea {
+    min-height: 20rem;
+}
+
+.affected-emails {
+    background-color: #aaaaaa!important;
+}
+
+.hide {
+    display: none;
+}
+
+#results {
+    xpadding: 2rem;
+}
+
+#results a {
+    color: #ffffff;
+    text-decoration: underline;
+}
+
+.upsidedown.pwned {
+    color: #ffffff;
+    background: #000000;
+}
+
+.upsidedown pre {
+    color: #000000;
+}
+
+.pwned-logo-surround {
+    width: 100%;
+    max-width: 432px;
+    padding: 2rem 0;
+}
