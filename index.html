@@ -174,7 +174,6 @@ hello@example.com;ggg@ww.cc
                 },
                 progress = function(current, total) {
                     var value = Math.round(100 - (current / total) * 100);
-                    console.log('progress', value + "%");
                     $("#progressBar").progressbar({
                         value: value
                     });
