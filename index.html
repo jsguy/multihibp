@@ -100,13 +100,14 @@ test@example.com;safeemail@example.com
                 <input class="affected-emails" type='text' readonly data-bind="value: pwned().join(';')">
                 <p>
                     <span>You should email</span>
-                    <span data-bind="text: pwned().length > 1? 'the users': 'the user'"></span>
-                    <a data-bind="attr: {href: mailtoLink()}">This mailto link uses BCC for all recipients.</a>
+                    <span data-bind="text: pwned().length > 1? 'the users.': 'the user.'"></span>
                     <span>You can edit the subject and email body below.</span>
                 </p>
                 <label>Subject</label>
                 <input type='text' data-bind="value: subject">
-                <textarea class="extra-large-textarea" data-bind="value: body"></textarea>
+                <textarea class="extra-large-textarea nomar" data-bind="value: body"></textarea>
+                <p class="nomar marbotsmall">Note: <em>This mailto link uses BCC for all recipients</em>.</p>
+                <a class="button marbot" data-bind="attr: {href: mailtoLink()}, text: pwned().length > 1? 'Send emails': 'Send email'"></a>
                 <p>The following addresses have been pwned</p>
                 <ul data-bind="foreach: pwned">
                     <li data-bind="text: $data"></li>

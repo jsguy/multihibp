@@ -24,6 +24,8 @@ select:focus {
     border-color: #00aef0;
 }
 
+#results a.button {text-decoration: none}
+
 input[type='email'],
 input[type='number'],
 input[type='password'],
@@ -90,3 +92,7 @@ html {
     max-width: 432px;
     padding: 2rem 0;
 }
+
+.nomar {margin: 0!important}
+.marbot {margin-bottom: 2rem}
+.marbotsmall {margin-bottom: 0.5rem!important;}
